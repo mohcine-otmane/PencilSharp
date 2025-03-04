@@ -1,217 +1,176 @@
 from typing import Dict, Callable, Any
-from src.views.widgets.base_widget import BaseWidget, BaseButton
+import customtkinter as ctk
+from PIL import Image, ImageTk
+import colorsys
+from .icon_widget import IconWidget
 from src.utils.theme import theme
+from src.utils.icon_loader import icon_loader
+from src.views.widgets.base_widget import BaseWidget
+import os
 
 class SubjectCard(BaseWidget):
+    # Map subjects to their icon files
+    ICON_MAP = {
+        "Mathematics": "math_icon.png",
+        "Biology": "biology_icon.png",
+        "Chemistry": "chemestry_icon.png",
+        # Default icons for other subjects will use math_icon.png
+    }
+
     def __init__(
         self,
-        master: Any,
-        subject: str,
-        data: Dict,
-        command: Callable,
+        master,
+        subject,
+        data,
+        command=None,
         **kwargs
     ):
-        # Set fixed dimensions for more compact card size
-        kwargs.update({
-            "width": 280,  # Reduced width
-            "height": 320  # Reduced height
-        })
-        
         super().__init__(
             master,
-            **theme.get_card_style("elevated"),
+            width=280,
+            height=180,
+            corner_radius=15,
+            fg_color=theme.colors.card_bg,
             **kwargs
         )
-
-        # Store original position for animations
-        self._original_pos = None
-        self._is_dragging = False
-        self._drag_start = None
-        self._animation_running = False
+        
+        self.subject = subject
+        self.data = data
+        self.command = command
         
         # Create content frame with padding
-        self.content_frame = BaseWidget(
+        self.content = ctk.CTkFrame(
             self,
             fg_color="transparent"
         )
-        self.content_frame.place(relx=0.5, rely=0.5, anchor="center")
+        self.content.pack(expand=True, fill="both", padx=20, pady=15)
         
-        # Icon with proportional size
-        self.icon_label = self._create_label(
-            self.content_frame,
-            text=data["icon"],
-            font=("Helvetica", 48),  # Reduced size
-            text_color=data["color"]
+        # Icon container for better centering and hover effects
+        self.icon_container = ctk.CTkFrame(
+            self.content,
+            fg_color="transparent",
+            width=90,
+            height=90
         )
-        self.icon_label.pack(pady=(0, 10))  # Reduced padding
+        self.icon_container.pack(pady=(0, 10))
+        self.icon_container.pack_propagate(False)
         
-        # Subject name with adjusted font
-        self.subject_label = self._create_label(
-            self.content_frame,
+        # Load the appropriate icon for this subject
+        icon_size = 64  # Base size for the icon
+        icon_file = self.ICON_MAP.get(subject, "math_icon.png")  # Default to math icon if subject not found
+        
+        self.icon = ctk.CTkLabel(
+            self.icon_container,
+            text="",
+            image=icon_loader.get_custom_icon(icon_file, size=icon_size),
+            width=icon_size,
+            height=icon_size
+        )
+        self.icon.place(relx=0.5, rely=0.5, anchor="center")
+        
+        # Subject name with larger font
+        self.name_label = ctk.CTkLabel(
+            self.content,
             text=subject,
-            font=("Helvetica", 24, "bold"),  # Adjusted size
-            text_color=data["color"]
+            font=theme.typography.h3
         )
-        self.subject_label.pack(pady=(0, 10))  # Reduced padding
+        self.name_label.pack(pady=(0, 5))
         
-        # Unit count with medium font
-        unit_count = len(data["units"])
-        self.units_label = self._create_label(
-            self.content_frame,
+        # Unit count
+        unit_count = len(data.get("units", []))
+        self.unit_label = ctk.CTkLabel(
+            self.content,
             text=f"{unit_count} Units",
-            font=("Helvetica", 16),  # Adjusted size
-            text_color=theme.colors.text
+            font=theme.typography.body2,
+            text_color=theme.colors.text_secondary
         )
-        self.units_label.pack(pady=(0, 15))  # Reduced padding
+        self.unit_label.pack(pady=(0, 10))
         
-        # Progress bar (if any progress exists)
+        # Progress bar (if progress data available)
         if "progress" in data:
-            self.progress_frame = BaseWidget(
-                self.content_frame,
-                fg_color="transparent",
-                height=4,
-                width=180  # Reduced width
+            progress = data["progress"]
+            self.progress_bar = ctk.CTkProgressBar(
+                self.content,
+                width=200,
+                height=6,
+                corner_radius=3
             )
-            self.progress_frame.pack(pady=(0, 15))  # Reduced padding
-            
-            progress = data.get("progress", 0)
-            self.progress_bar = BaseWidget(
-                self.progress_frame,
-                fg_color=data["color"],
-                corner_radius=2,
-                height=4,
-                width=int(180 * (progress / 100))  # Adjusted width
-            )
-            self.progress_bar.place(relx=0.5, rely=0.5, anchor="center")
+            self.progress_bar.set(progress)
+            self.progress_bar.pack(pady=(0, 10))
         
-        # Start button with hover effect
-        self.start_button = BaseButton(
-            self.content_frame,
+        # Start button
+        self.start_button = ctk.CTkButton(
+            self.content,
             text="Start Learning",
-            command=command,
-            style="primary",
-            fg_color=data["color"],
-            width=180,  # Reduced width
-            height=40   # Reduced height
+            width=160,
+            height=32,
+            corner_radius=16,
+            font=theme.typography.button,
+            command=self._handle_click
         )
-        self.start_button.pack(pady=(0, 0))
+        self.start_button.pack()
         
-        # Shadow effect for depth
-        self._shadow_intensity = 0
-        self.update_shadow()
+        # Bind hover events
+        self.bind("<Enter>", self._on_enter)
+        self.bind("<Leave>", self._on_leave)
         
-        # Bind mouse events for drag functionality
-        self.bind("<Button-1>", self._on_press)
-        self.bind("<B1-Motion>", self._on_drag)
-        self.bind("<ButtonRelease-1>", self._on_release)
-
-    def _create_label(self, parent, **kwargs):
-        """Create a themed label"""
-        return ctk.CTkLabel(
-            parent,
-            font=kwargs.pop("font", theme.typography.body_medium),
-            text_color=kwargs.pop("text_color", theme.colors.text),
-            **kwargs
-        )
-
-    def update_shadow(self):
-        """Update the shadow effect based on drag state"""
-        target_intensity = 20 if self._is_dragging else 0
-        current = self._shadow_intensity
-        
-        if current != target_intensity:
-            def animate_shadow(step=0):
-                if step < 10:
-                    progress = self._ease_in_out(step / 10)
-                    intensity = current + (target_intensity - current) * progress
-                    self.configure(border_width=1)
-                    self.configure(border_color=self._adjust_opacity(theme.colors.text, intensity / 100))
-                    self.after(20, lambda: animate_shadow(step + 1))
-                else:
-                    self._shadow_intensity = target_intensity
+    def _handle_click(self):
+        if self.command:
+            self.command(self.subject)
             
-            animate_shadow()
+    def _on_enter(self, event):
+        """Handle hover enter - scale up icon with smooth animation"""
+        self.icon.configure(width=74, height=74)  # Scale up by ~15%
+        
+    def _on_leave(self, event):
+        """Handle hover leave - return to normal scale with smooth animation"""
+        self.icon.configure(width=64, height=64)
 
+    def _create_gradient(self, base_color):
+        """Create a darker gradient version of the base color"""
+        # Convert hex to HSV
+        base_color = base_color.lstrip('#')
+        rgb = tuple(int(base_color[i:i+2], 16) for i in (0, 2, 4))
+        hsv = colorsys.rgb_to_hsv(rgb[0]/255, rgb[1]/255, rgb[2]/255)
+        
+        # Create darker version
+        darker_hsv = (hsv[0], hsv[1], hsv[2] * 0.7)
+        darker_rgb = colorsys.hsv_to_rgb(*darker_hsv)
+        darker_hex = '#{:02x}{:02x}{:02x}'.format(
+            int(darker_rgb[0] * 255),
+            int(darker_rgb[1] * 255),
+            int(darker_rgb[2] * 255)
+        )
+        
+        return [base_color, darker_hex]
+    
+    def _adjust_color(self, color, factor):
+        """Adjust color brightness"""
+        color = color.lstrip('#')
+        rgb = tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
+        new_rgb = tuple(min(int(c * factor), 255) for c in rgb)
+        return '#{:02x}{:02x}{:02x}'.format(*new_rgb)
+    
+    def _lighten_color(self, color, factor=1.3):
+        """Create lighter version of a color"""
+        color = color.lstrip('#')
+        rgb = tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
+        new_rgb = tuple(min(int(c * factor), 255) for c in rgb)
+        return '#{:02x}{:02x}{:02x}'.format(*new_rgb)
+    
     def _on_press(self, event):
-        """Handle mouse press"""
-        if self._animation_running:
-            return
-            
-        # Store initial position
-        self._drag_start = (event.x_root, event.y_root)
-        self._original_pos = self.winfo_x(), self.winfo_y()
+        self.original_pos = (self.winfo_x(), self.winfo_y())
         
-        # Visual feedback
-        self.lift()  # Bring to front
-        self._is_dragging = True
-        self.update_shadow()
-
     def _on_drag(self, event):
-        """Handle mouse drag"""
-        if not self._is_dragging or not self._drag_start or not self._original_pos:
-            return
+        if self.original_pos:
+            x = self.winfo_x() + (event.x_root - self._last_click_x)
+            y = self.winfo_y() + (event.y_root - self._last_click_y)
+            self.place(x=x, y=y)
             
-        # Calculate movement with smoothing
-        dx = event.x_root - self._drag_start[0]
-        dy = event.y_root - self._drag_start[1]
-        
-        # Apply smooth movement
-        self.place(
-            x=self._original_pos[0] + dx,
-            y=self._original_pos[1] + dy
-        )
-
     def _on_release(self, event):
-        """Handle mouse release"""
-        if not self._is_dragging:
-            return
-            
-        self._is_dragging = False
-        self.update_shadow()
-        
-        if self._original_pos:
-            self._animate_return()
-        
-        # Reset drag state
-        self._drag_start = None
-        self._original_pos = None
-
-    def _animate_return(self, duration=300):
-        """Animate the card returning to its original position"""
-        if self._animation_running or not hasattr(self, '_original_grid_info'):
-            return
-            
-        self._animation_running = True
-        start_time = self.after_idle(lambda: None)  # Get current time
-        
-        current_x = self.winfo_x()
-        current_y = self.winfo_y()
-        target_x = self._original_grid_info.get('x', 0)
-        target_y = self._original_grid_info.get('y', 0)
-        
-        def _animate_step(elapsed):
-            if elapsed >= duration:
-                # Final position
-                self.place_forget()
-                self.grid(**self._original_grid_info)
-                self._animation_running = False
-                return
-                
-            # Calculate progress with easing
-            progress = self._ease_in_out(elapsed / duration)
-            
-            # Calculate new position
-            new_x = current_x + (target_x - current_x) * progress
-            new_y = current_y + (target_y - current_y) * progress
-            
-            # Update position
-            self.place(x=new_x, y=new_y)
-            
-            # Schedule next frame
-            self.after(16, lambda: _animate_step(elapsed + 16))  # ~60fps
-        
-        _animate_step(0)
-
-    def _store_grid_info(self, event):
-        """Store grid information when the widget is mapped"""
-        self._original_grid_info = self.grid_info() 
+        if self.original_pos:
+            current_pos = (self.winfo_x(), self.winfo_y())
+            if current_pos != self.original_pos:
+                # Animate back to original position
+                self.place(x=self.original_pos[0], y=self.original_pos[1])
+            self.original_pos = None 
