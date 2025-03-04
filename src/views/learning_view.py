@@ -1,159 +1,171 @@
 import customtkinter as ctk
-from src.utils.theme import theme
-from src.views.widgets.latex_viewer import LaTeXViewer
+from tkinterweb import HtmlFrame
 
 class LearningView(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, fg_color="transparent", **kwargs)
         
-        # Create main content area
-        self.content_area = ctk.CTkFrame(
-            self,
-            fg_color=theme.colors.surface
+        # Create tabs for different learning modes
+        self.tab_view = ctk.CTkTabview(self)
+        self.tab_view.pack(fill="both", expand=True)
+        
+        # Add tabs
+        self.tab_view.add("Learn")
+        self.tab_view.add("Practice")
+        self.tab_view.add("Quiz")
+        
+        # Learn tab content
+        learn_frame = ctk.CTkFrame(self.tab_view.tab("Learn"), fg_color="transparent")
+        learn_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        learn_label = ctk.CTkLabel(
+            learn_frame,
+            text="Learning content will appear here",
+            font=("Helvetica", 16)
         )
-        self.content_area.pack(expand=True, fill="both", padx=20, pady=20)
+        learn_label.pack(pady=20)
         
-        # Create tabs for different modes
-        self.tab_frame = ctk.CTkFrame(
-            self.content_area,
-            fg_color="transparent"
+        # Practice tab content
+        practice_frame = ctk.CTkFrame(self.tab_view.tab("Practice"), fg_color="transparent")
+        practice_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        practice_label = ctk.CTkLabel(
+            practice_frame,
+            text="Practice problems will appear here",
+            font=("Helvetica", 16)
         )
-        self.tab_frame.pack(fill="x", padx=20, pady=(20, 0))
+        practice_label.pack(pady=20)
         
-        self.tabs = {}
-        for mode in ["Learn", "Practice", "Quiz"]:
-            self.tabs[mode] = ctk.CTkButton(
-                self.tab_frame,
-                text=mode,
-                width=120,
-                height=32,
-                corner_radius=16,
-                fg_color=theme.colors.primary if mode == "Learn" else "transparent",
-                text_color="#ffffff" if mode == "Learn" else theme.colors.text,
-                command=lambda m=mode: self._switch_mode(m)
-            )
-            self.tabs[mode].pack(side="left", padx=5)
+        # Quiz tab content
+        quiz_frame = ctk.CTkFrame(self.tab_view.tab("Quiz"), fg_color="transparent")
+        quiz_frame.pack(fill="both", expand=True, padx=20, pady=20)
         
-        # Create LaTeX viewer
-        self.latex_viewer = LaTeXViewer(self.content_area)
-        self.latex_viewer.pack(expand=True, fill="both", padx=20, pady=20)
+        quiz_label = ctk.CTkLabel(
+            quiz_frame,
+            text="Quiz questions will appear here",
+            font=("Helvetica", 16)
+        )
+        quiz_label.pack(pady=20)
         
-        # Load sample content
-        self.load_sample_content()
+        # Content viewer with LaTeX support
+        self.content_frame = ctk.CTkFrame(self, fg_color="#2a2b30")
+        self.content_frame.pack(fill="both", expand=True)
         
-    def _switch_mode(self, mode):
-        """Switch between learning modes"""
-        for tab_mode, tab in self.tabs.items():
-            if tab_mode == mode:
-                tab.configure(
-                    fg_color=theme.colors.primary,
-                    text_color="#ffffff"
-                )
-            else:
-                tab.configure(
-                    fg_color="transparent",
-                    text_color=theme.colors.text
-                )
+        self.html_viewer = HtmlFrame(self.content_frame)
+        self.html_viewer.pack(fill="both", expand=True, padx=20, pady=20)
         
-        # Load appropriate content for the mode
-        if mode == "Learn":
-            self.load_sample_content()
-        elif mode == "Practice":
-            self.load_practice_content()
-        else:  # Quiz
-            self.load_quiz_content()
+        # Load MathJax for LaTeX rendering
+        self.load_mathjax()
+        
+        # Show initial content
+        self.show_sample_content()
+    
+    def load_mathjax(self):
+        """Load MathJax configuration for LaTeX rendering"""
+        mathjax_config = """
+        <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
+                displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']]
+            }
+        };
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        """
+        self.html_viewer.add_html(mathjax_config)
+    
+    def show_sample_content(self):
+        """Show sample learning content with LaTeX"""
+        content = """
+        <div style="font-family: Arial, sans-serif; color: #ffffff; line-height: 1.6;">
+            <h1>Introduction to Quadratic Equations</h1>
             
-    def load_sample_content(self):
-        """Load sample mathematics content"""
-        content = """
-        <h1>Introduction to Numbers</h1>
-        
-        <div class="theorem">
-            <h3>Definition</h3>
-            <p>A number is a mathematical object used to count, measure, and label. The main types of numbers include:</p>
+            <p>A quadratic equation is a polynomial equation of degree 2. The standard form is:</p>
+            
+            <p style="text-align: center; font-size: 1.2em;">
+                $$ax^2 + bx + c = 0$$
+            </p>
+            
+            <p>where:</p>
             <ul>
-                <li>Natural Numbers (ℕ)</li>
-                <li>Integers (ℤ)</li>
-                <li>Rational Numbers (ℚ)</li>
-                <li>Real Numbers (ℝ)</li>
+                <li>$a \\neq 0$ (if $a = 0$ it becomes a linear equation)</li>
+                <li>$b$ and $c$ can be any real number</li>
             </ul>
-        </div>
-        
-        <div class="example">
-            <h3>Example: Quadratic Formula</h3>
-            <p>The quadratic formula is used to solve quadratic equations of the form ax² + bx + c = 0:</p>
-            $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
-            <p>This formula gives us the x-coordinates of where a parabola crosses the x-axis.</p>
-        </div>
-        
-        <div class="note">
-            <h3>Properties of Real Numbers</h3>
-            <p>For any real numbers a, b, and c:</p>
-            <ul>
-                <li>Commutative Property: $a + b = b + a$ and $a \\times b = b \\times a$</li>
-                <li>Associative Property: $(a + b) + c = a + (b + c)$</li>
-                <li>Distributive Property: $a(b + c) = ab + ac$</li>
-            </ul>
-        </div>
-        
-        <h2>Complex Numbers</h2>
-        <p>A complex number is a number that can be expressed in the form:</p>
-        $$z = a + bi$$
-        <p>where $a$ and $b$ are real numbers, and $i$ is the imaginary unit with the property $i^2 = -1$.</p>
-        """
-        self.latex_viewer.load_content(content)
-        
-    def load_practice_content(self):
-        """Load practice problems"""
-        content = """
-        <h1>Practice Problems</h1>
-        
-        <div class="example">
-            <h3>Problem 1</h3>
-            <p>Solve the quadratic equation:</p>
-            $$x^2 - 5x + 6 = 0$$
-            <div class="note">
-                <p>Hint: Use the quadratic formula or factoring.</p>
-            </div>
-        </div>
-        
-        <div class="example">
-            <h3>Problem 2</h3>
-            <p>Simplify the following expression:</p>
-            $$\\frac{x^2 - 4}{x - 2}$$
-            <div class="note">
-                <p>Hint: Factor the numerator.</p>
-            </div>
+            
+            <h2>The Quadratic Formula</h2>
+            
+            <p>The solutions to a quadratic equation can be found using the quadratic formula:</p>
+            
+            <p style="text-align: center; font-size: 1.2em;">
+                $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
+            </p>
+            
+            <p>The term under the square root ($b^2 - 4ac$) is called the discriminant.</p>
         </div>
         """
-        self.latex_viewer.load_content(content)
-        
-    def load_quiz_content(self):
-        """Load quiz questions"""
+        self.html_viewer.load_html(content)
+    
+    def show_practice_content(self):
+        """Show practice problems with LaTeX"""
         content = """
-        <h1>Quiz: Numbers and Operations</h1>
-        
-        <div class="example">
-            <h3>Question 1</h3>
-            <p>What is the solution to the equation:</p>
-            $$2x^2 + 7x + 3 = 0$$
+        <div style="font-family: Arial, sans-serif; color: #ffffff; line-height: 1.6;">
+            <h1>Practice Problems</h1>
+            
+            <p>Solve the following quadratic equations:</p>
+            
             <ol>
-                <li>$x = -3$ and $x = -\\frac{1}{2}$</li>
-                <li>$x = 3$ and $x = \\frac{1}{2}$</li>
-                <li>$x = -3$ and $x = \\frac{1}{2}$</li>
-                <li>$x = 3$ and $x = -\\frac{1}{2}$</li>
+                <li>
+                    $$x^2 + 5x + 6 = 0$$
+                    <button onclick="showSolution(1)">Show Solution</button>
+                    <div id="solution1" style="display: none;">
+                        Solution: $x = -2$ or $x = -3$
+                    </div>
+                </li>
+                
+                <li>
+                    $$2x^2 - 7x + 3 = 0$$
+                    <button onclick="showSolution(2)">Show Solution</button>
+                    <div id="solution2" style="display: none;">
+                        Solution: $x = 3$ or $x = \\frac{1}{2}$
+                    </div>
+                </li>
             </ol>
         </div>
         
-        <div class="example">
-            <h3>Question 2</h3>
-            <p>If $z = 3 + 4i$, what is $|z|$?</p>
-            <ol>
-                <li>$5$</li>
-                <li>$7$</li>
-                <li>$25$</li>
-                <li>$\\sqrt{25}$</li>
-            </ol>
-        </div>
+        <script>
+        function showSolution(n) {
+            document.getElementById('solution' + n).style.display = 'block';
+        }
+        </script>
         """
-        self.latex_viewer.load_content(content)
+        self.html_viewer.load_html(content)
+    
+    def show_quiz_content(self):
+        """Show quiz questions with LaTeX"""
+        content = """
+        <div style="font-family: Arial, sans-serif; color: #ffffff; line-height: 1.6;">
+            <h1>Quiz: Quadratic Equations</h1>
+            
+            <form id="quiz">
+                <p>1. What is the discriminant of the equation $x^2 + 4x + 4 = 0$?</p>
+                <input type="radio" name="q1" value="a"> $b^2 - 4ac = 16 - 16 = 0$<br>
+                <input type="radio" name="q1" value="b"> $b^2 - 4ac = 16 - 8 = 8$<br>
+                <input type="radio" name="q1" value="c"> $b^2 - 4ac = 8 - 16 = -8$<br>
+                
+                <p>2. For what value of $k$ will the equation $x^2 + kx + 4 = 0$ have equal roots?</p>
+                <input type="radio" name="q2" value="a"> $k = \\pm 4$<br>
+                <input type="radio" name="q2" value="b"> $k = \\pm 2$<br>
+                <input type="radio" name="q2" value="c"> $k = 4$<br>
+                
+                <button type="button" onclick="checkAnswers()">Submit</button>
+            </form>
+        </div>
+        
+        <script>
+        function checkAnswers() {
+            alert('Quiz submitted! Your answers have been recorded.');
+        }
+        </script>
+        """
+        self.html_viewer.load_html(content)

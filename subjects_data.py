@@ -1,14 +1,52 @@
 SUBJECTS = {
     "Mathematics": {
-        "color": "#58cc02",
-        "icon": "🔢",
+        "icon": "📐",
+        "color": "#4CAF50",
+        "progress": 0.75,
         "units": [
-            {"name": "Basic Mathematics", "topics": ["Numbers", "Addition & Subtraction", "Multiplication & Division", "Fractions", "Decimals"]},
-            {"name": "Pre-Algebra", "topics": ["Variables", "Expressions", "Equations", "Inequalities", "Ratios & Proportions"]},
-            {"name": "Algebra", "topics": ["Linear Equations", "Quadratic Equations", "Functions", "Graphs", "Systems of Equations"]},
-            {"name": "Geometry", "topics": ["Basic Shapes", "Angles", "Triangles", "Circles", "Areas & Volumes", "Transformations"]},
-            {"name": "Advanced Mathematics", "topics": ["Trigonometry", "Calculus Basics", "Limits", "Derivatives", "Integration"]},
-            {"name": "Statistics", "topics": ["Data Analysis", "Probability", "Statistical Measures", "Distributions", "Hypothesis Testing"]}
+            {"name": "Algebra Basics", "topics": ["Variables", "Equations", "Functions"]},
+            {"name": "Geometry", "topics": ["Shapes", "Areas", "Volumes"]},
+            {"name": "Trigonometry", "topics": ["Angles", "Sine/Cosine", "Triangles"]}
+        ]
+    },
+    "Physics": {
+        "icon": "⚡",
+        "color": "#2196F3",
+        "progress": 0.45,
+        "units": [
+            {"name": "Mechanics", "topics": ["Forces", "Motion", "Energy"]},
+            {"name": "Electricity", "topics": ["Circuits", "Magnetism", "Fields"]},
+            {"name": "Waves", "topics": ["Sound", "Light", "Oscillations"]}
+        ]
+    },
+    "Chemistry": {
+        "icon": "🧪",
+        "color": "#9C27B0",
+        "progress": 0.30,
+        "units": [
+            {"name": "Atomic Structure", "topics": ["Elements", "Bonds", "Reactions"]},
+            {"name": "Organic Chemistry", "topics": ["Compounds", "Reactions", "Properties"]},
+            {"name": "Chemical Analysis", "topics": ["Methods", "Tools", "Applications"]}
+        ]
+    },
+    "Biology": {
+        "icon": "🧬",
+        "color": "#FF9800",
+        "progress": 0.60,
+        "units": [
+            {"name": "Cell Biology", "topics": ["Structure", "Function", "Division"]},
+            {"name": "Genetics", "topics": ["DNA", "Inheritance", "Evolution"]},
+            {"name": "Ecology", "topics": ["Ecosystems", "Populations", "Conservation"]}
+        ]
+    },
+    "Computer Science": {
+        "icon": "💻",
+        "color": "#607D8B",
+        "progress": 0.85,
+        "units": [
+            {"name": "Programming Basics", "topics": ["Variables", "Control Flow", "Functions"]},
+            {"name": "Data Structures", "topics": ["Arrays", "Lists", "Trees"]},
+            {"name": "Algorithms", "topics": ["Sorting", "Searching", "Optimization"]}
         ]
     },
     "Science": {
@@ -43,17 +81,6 @@ SUBJECTS = {
             {"name": "Civics", "topics": ["Government Systems", "Democracy", "Rights & Responsibilities", "Law & Justice"]},
             {"name": "Economics", "topics": ["Basic Economics", "Market Systems", "Personal Finance", "Global Economy"]},
             {"name": "Cultural Studies", "topics": ["World Cultures", "Traditions", "Religion", "Art History", "Music History"]}
-        ]
-    },
-    "Computer Science": {
-        "color": "#a560e8",
-        "icon": "💻",
-        "units": [
-            {"name": "Programming Basics", "topics": ["Algorithms", "Variables & Data Types", "Control Structures", "Functions"]},
-            {"name": "Web Development", "topics": ["HTML", "CSS", "JavaScript", "Web Design", "Responsive Design"]},
-            {"name": "Python Programming", "topics": ["Python Basics", "Data Structures", "OOP", "Libraries", "Projects"]},
-            {"name": "Database Systems", "topics": ["SQL", "Database Design", "Data Management", "Big Data"]},
-            {"name": "Advanced Topics", "topics": ["AI Basics", "Machine Learning", "Cybersecurity", "Software Engineering"]}
         ]
     },
     "Foreign Languages": {

@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Dict, Any
+import customtkinter as ctk
 
 @dataclass
 class ThemeColors:
@@ -118,4 +119,64 @@ class ThemeManager:
         return '#{:02x}{:02x}{:02x}'.format(*new_rgb)
 
 # Create a global theme instance
-theme = ThemeManager() 
+theme = ThemeManager()
+
+class Theme:
+    def __init__(self):
+        # Color palette
+        self.colors = {
+            "background": "#1a1b1e",
+            "surface": "#1e2124",
+            "surface_variant": "#2a2b30",
+            "primary": "#2196F3",
+            "secondary": "#4CAF50",
+            "text": "#ffffff",
+            "text_secondary": "#8a8d93",
+            "error": "#f44336",
+            "success": "#4CAF50",
+            "warning": "#ff9800"
+        }
+        
+        # Font configurations
+        self.fonts = {
+            "heading": ("Helvetica", 24, "bold"),
+            "subheading": ("Helvetica", 18, "bold"),
+            "body": ("Helvetica", 14),
+            "caption": ("Helvetica", 12)
+        }
+        
+        # Spacing and sizing
+        self.spacing = {
+            "xs": 5,
+            "sm": 10,
+            "md": 20,
+            "lg": 40,
+            "xl": 60
+        }
+        
+        # Border radius
+        self.radius = {
+            "sm": 8,
+            "md": 15,
+            "lg": 30
+        }
+
+# Create a singleton instance
+theme = Theme()
+
+def set_theme():
+    """Configure the application theme"""
+    # Set appearance mode to dark
+    ctk.set_appearance_mode("dark")
+    # Set default color theme to blue
+    ctk.set_default_color_theme("blue")
+
+theme = {
+    "primary": "#2196F3",
+    "primary_dark": "#1976D2",
+    "background": "#1a1b1e",
+    "surface": "#1e2124",
+    "surface_dark": "#2a2b30",
+    "text": "#ffffff",
+    "text_secondary": "#8a8d93"
+} 
