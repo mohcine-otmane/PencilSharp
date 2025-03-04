@@ -1,0 +1,4 @@
+colorama==0.4.6
+termcolor==2.3.0
+Pillow==10.0.0
+customtkinter==5.2.2 
