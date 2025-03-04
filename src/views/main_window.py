@@ -94,40 +94,80 @@ class MainWindow(ctk.CTk, Observer):
         def create_content():
             self.clear_main_frame()
 
-            # Create centered container for content
-            content_container = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-            content_container.place(relx=0.5, rely=0.5, anchor="center")
+            # Create main container with padding
+            main_container = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+            main_container.pack(fill="both", expand=True)
             
             # Subject selection header
             header_label = ctk.CTkLabel(
-                content_container,
+                main_container,
                 text="Choose Your Subject",
                 font=("Helvetica", 36, "bold")
             )
-            header_label.pack(pady=(0, 40))
+            header_label.pack(pady=(0, 20))  # Reduced padding
+
+            # Create scrollable frame for the grid
+            scroll_container = TouchScrollableFrame(
+                main_container,
+                fg_color="transparent"
+            )
+            scroll_container.pack(fill="both", expand=True)
 
             # Create grid frame for subject cards
-            grid_frame = ctk.CTkFrame(content_container, fg_color="transparent")
-            grid_frame.pack(fill="both", expand=True)
+            grid_frame = ctk.CTkFrame(scroll_container, fg_color="transparent")
+            grid_frame.pack(fill="both", expand=True, padx=10)  # Reduced padding
 
-            # Configure grid for equal spacing
-            for i in range(3):
+            # Calculate number of columns based on window width
+            window_width = self.winfo_width()
+            card_width = 280  # Match the new card width
+            spacing = 20     # Reduced spacing between cards
+            num_columns = max(2, min(4, (window_width - 100) // (card_width + spacing)))
+
+            # Configure grid columns
+            for i in range(num_columns):
                 grid_frame.grid_columnconfigure(i, weight=1, uniform="column")
-            grid_frame.grid_rowconfigure(0, weight=1)
 
-            # Create subject cards
+            # Create subject cards in a grid
             for i, (subject_name, subject) in enumerate(self.controller.subjects.items()):
+                row = i // num_columns
+                col = i % num_columns
+                
                 card = SubjectCard(
                     grid_frame,
                     subject=subject_name,
                     data={
                         "icon": subject.icon,
                         "color": subject.color,
-                        "units": subject.units
+                        "units": subject.units,
+                        "progress": subject.progress
                     },
                     command=lambda s=subject_name: self.controller.select_subject(s)
                 )
-                card.grid(row=0, column=i, padx=30, pady=20, sticky="nsew")
+                card.grid(
+                    row=row,
+                    column=col,
+                    padx=spacing//2,
+                    pady=spacing//2,
+                    sticky="nsew"
+                )
+                
+                # Configure row weight for equal spacing
+                grid_frame.grid_rowconfigure(row, weight=1, pad=spacing//2)
+            
+            # Add bottom padding for last row
+            grid_frame.grid_rowconfigure(row + 1, weight=1, pad=spacing//2)
+            
+            # Bind window resize event to update layout
+            def on_resize(event):
+                # Recalculate number of columns
+                new_width = event.width
+                new_num_columns = max(2, min(4, (new_width - 100) // (card_width + spacing)))
+                
+                # Only update if number of columns changed
+                if new_num_columns != num_columns:
+                    self.after(100, self.show_subjects_page)  # Debounced refresh
+            
+            self.bind("<Configure>", on_resize)
             
             # Start fade-in transition
             self.transition_manager.fade_in()

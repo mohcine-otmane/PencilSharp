@@ -13,7 +13,7 @@ from widgets import (
 from PyQt6.QtWidgets import QApplication
 import sys
 
-class SubjectLearningGUI:
+class PencilSharpGUI:
     def __init__(self):
         # Initialize PyQt6 application
         self.qt_app = QApplication(sys.argv)
@@ -222,5 +222,5 @@ class SubjectLearningGUI:
         self.transition_manager.fade_out(callback=create_content)
 
 if __name__ == "__main__":
-    app = SubjectLearningGUI()
+    app = PencilSharpGUI()
     app.run() 
